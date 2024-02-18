@@ -20,7 +20,7 @@ Before running Quake3-Parser, you need to have Rust installed in your system. I 
     Finished dev [unoptimized + debuginfo] target(s) in 0.01s
      Running `target/debug/quake3-parser test.log`
 {
-  "match_2": {
+  "game_2": {
     "total_kills": 11,
     "players": [
       "Isgalamido",
@@ -38,7 +38,7 @@ Before running Quake3-Parser, you need to have Rust installed in your system. I 
       "MOD_FALLING": 1
     }
   },
-  "match_1": {
+  "game_1": {
     "total_kills": 0,
     "players": [
       "Isgalamido"
