@@ -6,23 +6,21 @@ use crate::event::{Event, MeansOfDeath};
 use crate::parser;
 
 #[derive(Serialize, Debug)]
-pub struct MatchKills<'a> {
+pub struct MatchKills {
     total_kills: u32,
-    players: Vec<&'a str>,
-    kills: HashMap<&'a str, i32>,
+    players: Vec<String>,
+    kills: HashMap<String, i32>,
     kills_by_means: HashMap<MeansOfDeath, u32>,
 }
 
-pub fn group_game_data(filename: &str) -> Result<String, &str> {
+pub fn group_game_data(s: String) -> Result<HashMap<String, MatchKills>, &'static str> {
     let mut match_struct = HashMap::new();
     let mut match_num = 0;
-
-    let file = std::fs::read_to_string(&filename).map_err(|_| "Cannot read file")?;
-    let lines = file.lines();
+    let lines = s.lines();
     for line in lines {
-        let log = parser::parse_line(line);
+        let log = parser::parse_line(&line);
         let Ok((_, event)) = log else {
-            println!("Error parsing line: {}", line);
+            println!("Error parsing line: {}", &line);
             continue;
         };
         match event {
@@ -46,24 +44,24 @@ pub fn group_game_data(filename: &str) -> Result<String, &str> {
                 if kill.killer == "<world>" {
                     match_kill
                         .kills
-                        .entry(kill.victim)
+                        .entry(kill.victim.to_string())
                         .and_modify(|e| *e -= 1)
                         .or_insert(-1);
-                    if !match_kill.players.contains(&kill.victim) {
-                        match_kill.players.push(kill.victim);
+                    if !match_kill.players.contains(&kill.victim.to_string()) {
+                        match_kill.players.push(kill.victim.to_string());
                     }
                 } else {
                     match_kill
                         .kills
-                        .entry(kill.killer)
+                        .entry(kill.killer.to_string())
                         .and_modify(|e| *e += 1)
                         .or_insert(1);
-                    match_kill.kills.entry(kill.victim).or_insert(0);
-                    if !match_kill.players.contains(&kill.killer) {
-                        match_kill.players.push(kill.killer);
+                    match_kill.kills.entry(kill.victim.to_string()).or_insert(0);
+                    if !match_kill.players.contains(&kill.killer.to_string()) {
+                        match_kill.players.push(kill.killer.to_string());
                     }
-                    if !match_kill.players.contains(&kill.victim) {
-                        match_kill.players.push(kill.victim);
+                    if !match_kill.players.contains(&kill.victim.to_string()) {
+                        match_kill.players.push(kill.victim.to_string());
                     }
                 }
             }
@@ -78,9 +76,9 @@ pub fn group_game_data(filename: &str) -> Result<String, &str> {
                         kills_by_means: HashMap::new(),
                     });
                 let match_kill = match_struct.get_mut(&match_number).unwrap();
-                match_kill.kills.entry(player).or_insert(0);
-                if !match_kill.players.contains(&player) {
-                    match_kill.players.push(player);
+                match_kill.kills.entry(player.to_string()).or_insert(0);
+                if !match_kill.players.contains(&player.to_string()) {
+                    match_kill.players.push(player.to_string());
                 }
             }
             Event::InitGame => {
@@ -90,5 +88,6 @@ pub fn group_game_data(filename: &str) -> Result<String, &str> {
             _ => {}
         }
     }
-    serde_json::to_string_pretty(&match_struct).map_err(|_| "Error serializing data")
+
+    Ok(match_struct)
 }

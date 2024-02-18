@@ -10,10 +10,14 @@ fn main() -> Result<(), &'static str> {
     if args.len() < 2 {
         Err("Insufficient arguments")
     } else {
-        let Ok(report) = report::group_game_data(&args[1]) else {
+        let file = std::fs::read_to_string(&args[1]).map_err(|_| "Cannot read file")?;
+        let Ok(report) = report::group_game_data(file) else {
             return Err("Error parsing file");
         };
-        println!("{}", report);
+        let Ok(json) = serde_json::to_string_pretty(&report) else {
+            return Err("Error serializing report");
+        };
+        println!("{}", json);
         Ok(())
     }
 }
