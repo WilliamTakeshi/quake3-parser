@@ -131,10 +131,7 @@ mod tests {
         let result = parse_client_userinfo_changed(input);
         assert_eq!(
             result,
-            Ok((
-                "\\tRESTOFSTRING",
-                Event::ClientUserinfoChanged("MyName")
-            ))
+            Ok(("\\tRESTOFSTRING", Event::ClientUserinfoChanged("MyName")))
         );
     }
 }
