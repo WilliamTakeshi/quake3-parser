@@ -13,8 +13,8 @@ pub struct KillLog<'a> {
 }
 
 pub fn parse_kill_log(input: &str) -> IResult<&str, KillLog> {
-
-    // Throw all this away
+    // Throw the first part away
+    // " 25:52 Kill: 1022 2 22: "
     let (input, _) = multispace0(input)?;
     let (input, _) = digit1(input)?; // hour
     let (input, _) = tag(":")(input)?;
@@ -38,10 +38,6 @@ pub fn parse_kill_log(input: &str) -> IResult<&str, KillLog> {
         tag(" by "), // ignore this tag
         take_until("\n"), // cause is everything until the end of the line
     ))(input)?;
-
-    println!("killer: {:?}", killer);
-    println!("killed: {:?}", killed);
-    println!("cause: {:?}", cause);
 
     Ok((
         input,
