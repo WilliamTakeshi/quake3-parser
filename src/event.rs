@@ -1,5 +1,7 @@
 use std::str::FromStr;
 
+use serde::Serialize;
+
 #[derive(Debug, PartialEq)]
 pub enum Event<'a> {
     Kill(KillFeed<'a>),
@@ -14,7 +16,7 @@ pub struct KillFeed<'a> {
     pub victim: &'a str,
     pub mean_of_death: MeansOfDeath,
 }
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum MeansOfDeath {
     ModUnknown,
     ModShotgun,
@@ -45,6 +47,15 @@ pub enum MeansOfDeath {
     ModKamikaze,
     ModJuiced,
     ModGrapple,
+}
+
+impl Serialize for MeansOfDeath {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 impl ToString for MeansOfDeath {
