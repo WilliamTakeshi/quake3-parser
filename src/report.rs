@@ -91,3 +91,30 @@ pub fn group_game_data(s: String) -> Result<HashMap<String, MatchKills>, &'stati
 
     Ok(match_struct)
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_group_game_data() {
+        let file = std::fs::read_to_string("test.log").unwrap();
+        let report: HashMap<String, MatchKills> = group_game_data(file.to_string()).unwrap();
+
+        let match_0 = report.get("match_1").unwrap();
+        assert_eq!(match_0.total_kills, 0);
+        assert_eq!(match_0.players.len(), 1);
+        assert_eq!(match_0.kills.get("Isgalamido").unwrap(), &0);
+        assert_eq!(match_0.kills_by_means, HashMap::new());
+        let match_1 = report.get("match_2").unwrap();
+        assert_eq!(match_1.total_kills, 11);
+        assert_eq!(match_1.players.len(), 3);
+        assert_eq!(match_1.kills.get("Isgalamido").unwrap(), &-5);
+        assert_eq!(match_1.kills.get("Dono da Bola").unwrap(), &0);
+        assert_eq!(match_1.kills.get("Mocinha").unwrap(), &0);
+        assert_eq!(match_1.kills_by_means.get(&MeansOfDeath::ModRocketSplash).unwrap(), &3);
+        assert_eq!(match_1.kills_by_means.get(&MeansOfDeath::ModFalling).unwrap(), &1);
+        assert_eq!(match_1.kills_by_means.get(&MeansOfDeath::ModTriggerHurt).unwrap(), &7);
+    }
+}
