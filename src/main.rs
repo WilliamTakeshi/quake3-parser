@@ -1,14 +1,30 @@
+use std::{collections::HashMap, env};
+use serde::Serialize;
+
 mod parser;
 
-fn main() {
-    let input = " 25:52 Kill: 1022 2 22: <world> killed Isgalamido by MOD_TRIGGER_HURT
-";
-    match parser::parse_kill_log(input) {
-        Ok((_, log)) => {
-            println!("Killer: {}", log.killer);
-            println!("Killed: {}", log.killed);
-            println!("Cause: {}", log.cause);
+#[derive(Serialize)]
+pub struct MatchKills<'a> {
+    total_kills: u32,
+    players: Vec<&'a str>,
+    kills: HashMap<&'a str, i32>,
+}
+
+fn main() -> Result<(), &'static str> {
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() < 2 {
+        Err("Insufficient arguments")
+    } else {
+        let file = std::fs::read_to_string(&args[1]).map_err(|_| "Cannot read file")?;
+        let lines = file.lines();
+        for line in lines {
+            println!("{}", line);
+            let log = parser::parse_kill_log(line);
+            println!("{:?}", log);
         }
-        Err(e) => println!("Error: {:?}", e),
+        // let report = generate_report(&file);
+        // println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        Ok(())
     }
 }
