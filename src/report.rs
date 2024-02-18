@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 use serde::Serialize;
 
@@ -8,7 +9,7 @@ use crate::parser;
 #[derive(Serialize, Debug)]
 pub struct MatchKills {
     total_kills: u32,
-    players: Vec<String>,
+    players: HashSet<String>,
     kills: HashMap<String, i32>,
     kills_by_means: HashMap<MeansOfDeath, u32>,
 }
@@ -30,7 +31,7 @@ pub fn group_game_data(s: String) -> Result<HashMap<String, MatchKills>, &'stati
                     .entry(match_number.clone())
                     .or_insert(MatchKills {
                         total_kills: 0,
-                        players: vec![],
+                        players: HashSet::new(),
                         kills: HashMap::new(),
                         kills_by_means: HashMap::new(),
                     });
@@ -47,9 +48,7 @@ pub fn group_game_data(s: String) -> Result<HashMap<String, MatchKills>, &'stati
                         .entry(kill.victim.to_string())
                         .and_modify(|e| *e -= 1)
                         .or_insert(-1);
-                    if !match_kill.players.contains(&kill.victim.to_string()) {
-                        match_kill.players.push(kill.victim.to_string());
-                    }
+                    match_kill.players.insert(kill.victim.to_string());
                 } else {
                     match_kill
                         .kills
@@ -57,12 +56,8 @@ pub fn group_game_data(s: String) -> Result<HashMap<String, MatchKills>, &'stati
                         .and_modify(|e| *e += 1)
                         .or_insert(1);
                     match_kill.kills.entry(kill.victim.to_string()).or_insert(0);
-                    if !match_kill.players.contains(&kill.killer.to_string()) {
-                        match_kill.players.push(kill.killer.to_string());
-                    }
-                    if !match_kill.players.contains(&kill.victim.to_string()) {
-                        match_kill.players.push(kill.victim.to_string());
-                    }
+                    match_kill.players.insert(kill.killer.to_string());
+                    match_kill.players.insert(kill.victim.to_string());
                 }
             }
             Event::ClientUserinfoChanged(player) => {
@@ -71,15 +66,13 @@ pub fn group_game_data(s: String) -> Result<HashMap<String, MatchKills>, &'stati
                     .entry(match_number.clone())
                     .or_insert(MatchKills {
                         total_kills: 0,
-                        players: vec![],
+                        players: HashSet::new(),
                         kills: HashMap::new(),
                         kills_by_means: HashMap::new(),
                     });
                 let match_kill = match_struct.get_mut(&match_number).unwrap();
                 match_kill.kills.entry(player.to_string()).or_insert(0);
-                if !match_kill.players.contains(&player.to_string()) {
-                    match_kill.players.push(player.to_string());
-                }
+                match_kill.players.insert(player.to_string());
             }
             Event::InitGame => {
                 match_num += 1;
