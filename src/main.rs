@@ -20,7 +20,6 @@ fn main() -> Result<(), &'static str> {
         let file = std::fs::read_to_string(&args[1]).map_err(|_| "Cannot read file")?;
         let lines = file.lines();
         for line in lines {
-            println!("{}", line);
             let log = parser::parse_line(line);
             println!("{:?}", log);
         }

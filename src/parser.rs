@@ -14,10 +14,12 @@ pub fn parse_line(input: &str) -> IResult<&str, Event> {
     let (input, _) = tag(":")(input)?;
     let (input, _) = digit1(input)?; // minute
     let (input, _) = multispace0(input)?;
-    let (input, tag) = take_while1(|c: char| c.is_ascii_alphabetic() || c == ':')(input)?;
+    let (input, tag) = take_while1(|c: char| c.is_ascii_alphabetic() || c == ':' || c == '-')(input)?;
 
     match tag {
         "Kill:" => parse_kill_log(input),
+        "InitGame:" => Ok((input, Event::InitGame)),
+        "ShutdownGame:" => Ok((input, Event::ShutdownGame)),
         _ => Ok((input, Event::Ignored)),
     }
 }

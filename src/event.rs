@@ -3,6 +3,8 @@ use std::str::FromStr;
 #[derive(Debug, PartialEq)]
 pub enum Event<'a> {
     Kill(KillFeed<'a>),
+    InitGame,
+    ShutdownGame,
     Ignored,
 }
 
