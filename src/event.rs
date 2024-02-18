@@ -5,6 +5,7 @@ use serde::Serialize;
 #[derive(Debug, PartialEq)]
 pub enum Event<'a> {
     Kill(KillFeed<'a>),
+    ClientUserinfoChanged(&'a str),
     InitGame,
     ShutdownGame,
     Ignored,

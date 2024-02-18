@@ -1,9 +1,9 @@
-use std::{collections::HashMap, env};
 use serde::Serialize;
+use std::{collections::HashMap, env};
 
-mod parser;
 mod event;
-use event::MeansOfDeath;
+mod parser;
+use event::{Event, MeansOfDeath};
 
 #[derive(Serialize, Debug)]
 pub struct MatchKills<'a> {
@@ -31,25 +31,38 @@ fn main() -> Result<(), &'static str> {
                 continue;
             };
             match event {
-                event::Event::Kill(kill) => {
-                    println!("{:?}", kill);
+                Event::Kill(kill) => {
                     let match_number = format!("match_{}", match_num);
-                    match_struct.entry(match_number.clone()).or_insert(MatchKills {
-                        total_kills: 0,
-                        players: vec![],
-                        kills: HashMap::new(),
-                        kills_by_means: HashMap::new(),
-                    });
+                    match_struct
+                        .entry(match_number.clone())
+                        .or_insert(MatchKills {
+                            total_kills: 0,
+                            players: vec![],
+                            kills: HashMap::new(),
+                            kills_by_means: HashMap::new(),
+                        });
                     let match_kill = match_struct.get_mut(&match_number).unwrap();
                     match_kill.total_kills += 1;
-                    match_kill.kills_by_means.entry(kill.mean_of_death).and_modify(|e| *e += 1).or_insert(1);
+                    match_kill
+                        .kills_by_means
+                        .entry(kill.mean_of_death)
+                        .and_modify(|e| *e += 1)
+                        .or_insert(1);
                     if kill.killer == "<world>" {
-                        match_kill.kills.entry(kill.victim).and_modify(|e| *e -= 1).or_insert(-1);
+                        match_kill
+                            .kills
+                            .entry(kill.victim)
+                            .and_modify(|e| *e -= 1)
+                            .or_insert(-1);
                         if !match_kill.players.contains(&kill.victim) {
                             match_kill.players.push(kill.victim);
                         }
                     } else {
-                        match_kill.kills.entry(kill.killer).and_modify(|e| *e += 1).or_insert(1);
+                        match_kill
+                            .kills
+                            .entry(kill.killer)
+                            .and_modify(|e| *e += 1)
+                            .or_insert(1);
                         match_kill.kills.entry(kill.victim).or_insert(0);
                         if !match_kill.players.contains(&kill.killer) {
                             match_kill.players.push(kill.killer);
@@ -60,10 +73,26 @@ fn main() -> Result<(), &'static str> {
                     }
                     println!("{}", serde_json::to_string_pretty(&match_struct).unwrap());
                 }
-                event::Event::InitGame => {
+                Event::ClientUserinfoChanged(player) => {
+                    let match_number = format!("match_{}", match_num);
+                    match_struct
+                        .entry(match_number.clone())
+                        .or_insert(MatchKills {
+                            total_kills: 0,
+                            players: vec![],
+                            kills: HashMap::new(),
+                            kills_by_means: HashMap::new(),
+                        });
+                    let match_kill = match_struct.get_mut(&match_number).unwrap();
+                    match_kill.kills.entry(player).or_insert(0);
+                    if !match_kill.players.contains(&player) {
+                        match_kill.players.push(player);
+                    }
+                }
+                Event::InitGame => {
                     match_num += 1;
                 }
-                event::Event::ShutdownGame => {}
+                Event::ShutdownGame => {}
                 _ => {}
             }
         }

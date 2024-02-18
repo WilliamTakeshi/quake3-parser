@@ -14,10 +14,12 @@ pub fn parse_line(input: &str) -> IResult<&str, Event> {
     let (input, _) = tag(":")(input)?;
     let (input, _) = digit1(input)?; // minute
     let (input, _) = multispace0(input)?;
-    let (input, tag) = take_while1(|c: char| c.is_ascii_alphabetic() || c == ':' || c == '-')(input)?;
+    let (input, tag) =
+        take_while1(|c: char| c.is_ascii_alphabetic() || c == ':' || c == '-')(input)?;
 
     match tag {
         "Kill:" => parse_kill_log(input),
+        "ClientUserinfoChanged:" => parse_client_userinfo_changed(input),
         "InitGame:" => Ok((input, Event::InitGame)),
         "ShutdownGame:" => Ok((input, Event::ShutdownGame)),
         _ => Ok((input, Event::Ignored)),
@@ -62,6 +64,16 @@ pub fn parse_kill_log(input: &str) -> IResult<&str, Event> {
     ))
 }
 
+pub fn parse_client_userinfo_changed(input: &str) -> IResult<&str, Event> {
+    let (input, (_, _, player_name)) = tuple((
+        take_until("n\\"), // killer is everything until " killed "
+        tag("n\\"),        // ignore this tag
+        take_until("\\t"), // victim is everything until " by "
+    ))(input)?;
+
+    Ok((input, Event::ClientUserinfoChanged(player_name)))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -101,6 +113,28 @@ mod tests {
                 "MOD_INVALID",
                 nom::error::ErrorKind::Tag,
             )))
+        );
+    }
+
+    #[test]
+    fn test_parse_client_userinfo_changed() {
+        let input = " 2 n\\Isgalamido\\t\\0\\model\\uriel/zael\\hmodel\\uriel/zael\\g_redteam\\\\g_blueteam\\\\c1\\5\\c2\\5\\hc\\100\\w\\0\\l\\0\\tt\\0\\tl\\0>";
+
+        let result = parse_client_userinfo_changed(input);
+        assert_eq!(result, Ok(("\\t\\0\\model\\uriel/zael\\hmodel\\uriel/zael\\g_redteam\\\\g_blueteam\\\\c1\\5\\c2\\5\\hc\\100\\w\\0\\l\\0\\tt\\0\\tl\\0>", Event::ClientUserinfoChanged("Isgalamido"))));
+    }
+
+    #[test]
+    fn test_parse_client_userinfo_changed2() {
+        let input = " 2 n\\MyName\\tRESTOFSTRING";
+
+        let result = parse_client_userinfo_changed(input);
+        assert_eq!(
+            result,
+            Ok((
+                "\\tRESTOFSTRING",
+                Event::ClientUserinfoChanged("MyName")
+            ))
         );
     }
 }
