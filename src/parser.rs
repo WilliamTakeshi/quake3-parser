@@ -3,18 +3,17 @@ use std::str::FromStr;
 use nom::{
     bytes::complete::{tag, take_until, take_while1},
     character::complete::{digit1, multispace0},
-    combinator::eof,
     sequence::tuple,
     IResult,
 };
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct KillFeed<'a> {
     pub killer: &'a str,
     pub victim: &'a str,
     pub mean_of_death: MeansOfDeath,
 }
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum MeansOfDeath {
     ModUnknown,
     ModShotgun,
@@ -46,7 +45,6 @@ pub enum MeansOfDeath {
     ModJuiced,
     ModGrapple,
 }
-
 
 impl ToString for MeansOfDeath {
     fn to_string(&self) -> String {
@@ -92,36 +90,36 @@ impl FromStr for MeansOfDeath {
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         match input {
-            "MOD_UNKNOWN"  => Ok(MeansOfDeath::ModUnknown),
-            "MOD_SHOTGUN"  => Ok(MeansOfDeath::ModShotgun),
-            "MOD_GAUNTLET"  => Ok(MeansOfDeath::ModGauntlet),
-            "MOD_MACHINEGUN"  => Ok(MeansOfDeath::ModMachinegun),
-            "MOD_GRENADE"  => Ok(MeansOfDeath::ModGrenade),
-            "MOD_GRENADE_SPLASH"  => Ok(MeansOfDeath::ModGrenadeSplash),
-            "MOD_ROCKET"  => Ok(MeansOfDeath::ModRocket),
-            "MOD_ROCKET_SPLASH"  => Ok(MeansOfDeath::ModRocketSplash),
-            "MOD_PLASMA"  => Ok(MeansOfDeath::ModPlasma),
-            "MOD_PLASMA_SPLASH"  => Ok(MeansOfDeath::ModPlasmaSplash),
-            "MOD_RAILGUN"  => Ok(MeansOfDeath::ModRailgun),
-            "MOD_LIGHTNING"  => Ok(MeansOfDeath::ModLightning),
-            "MOD_BFG"  => Ok(MeansOfDeath::ModBfg),
-            "MOD_BFG_SPLASH"  => Ok(MeansOfDeath::ModBfgSplash),
-            "MOD_WATER"  => Ok(MeansOfDeath::ModWater),
-            "MOD_SLIME"  => Ok(MeansOfDeath::ModSlime),
-            "MOD_LAVA"  => Ok(MeansOfDeath::ModLava),
-            "MOD_CRUSH"  => Ok(MeansOfDeath::ModCrush),
-            "MOD_TELEFRAG"  => Ok(MeansOfDeath::ModTelefrag),
-            "MOD_FALLING"  => Ok(MeansOfDeath::ModFalling),
-            "MOD_SUICIDE"  => Ok(MeansOfDeath::ModSuicide),
-            "MOD_TARGET_LASER"  => Ok(MeansOfDeath::ModTargetLaser),
-            "MOD_TRIGGER_HURT"  => Ok(MeansOfDeath::ModTriggerHurt),
-            "MOD_NAIL"  => Ok(MeansOfDeath::ModNail),
-            "MOD_CHAINGUN"  => Ok(MeansOfDeath::ModChaingun),
-            "MOD_PROXIMITY_MINE"  => Ok(MeansOfDeath::ModProximityMine),
-            "MOD_KAMIKAZE"  => Ok(MeansOfDeath::ModKamikaze),
-            "MOD_JUICED"  => Ok(MeansOfDeath::ModJuiced),
-            "MOD_GRAPPLE"  => Ok(MeansOfDeath::ModGrapple),
-            _      => Err(ParseMeansOfDeathError),
+            "MOD_UNKNOWN" => Ok(MeansOfDeath::ModUnknown),
+            "MOD_SHOTGUN" => Ok(MeansOfDeath::ModShotgun),
+            "MOD_GAUNTLET" => Ok(MeansOfDeath::ModGauntlet),
+            "MOD_MACHINEGUN" => Ok(MeansOfDeath::ModMachinegun),
+            "MOD_GRENADE" => Ok(MeansOfDeath::ModGrenade),
+            "MOD_GRENADE_SPLASH" => Ok(MeansOfDeath::ModGrenadeSplash),
+            "MOD_ROCKET" => Ok(MeansOfDeath::ModRocket),
+            "MOD_ROCKET_SPLASH" => Ok(MeansOfDeath::ModRocketSplash),
+            "MOD_PLASMA" => Ok(MeansOfDeath::ModPlasma),
+            "MOD_PLASMA_SPLASH" => Ok(MeansOfDeath::ModPlasmaSplash),
+            "MOD_RAILGUN" => Ok(MeansOfDeath::ModRailgun),
+            "MOD_LIGHTNING" => Ok(MeansOfDeath::ModLightning),
+            "MOD_BFG" => Ok(MeansOfDeath::ModBfg),
+            "MOD_BFG_SPLASH" => Ok(MeansOfDeath::ModBfgSplash),
+            "MOD_WATER" => Ok(MeansOfDeath::ModWater),
+            "MOD_SLIME" => Ok(MeansOfDeath::ModSlime),
+            "MOD_LAVA" => Ok(MeansOfDeath::ModLava),
+            "MOD_CRUSH" => Ok(MeansOfDeath::ModCrush),
+            "MOD_TELEFRAG" => Ok(MeansOfDeath::ModTelefrag),
+            "MOD_FALLING" => Ok(MeansOfDeath::ModFalling),
+            "MOD_SUICIDE" => Ok(MeansOfDeath::ModSuicide),
+            "MOD_TARGET_LASER" => Ok(MeansOfDeath::ModTargetLaser),
+            "MOD_TRIGGER_HURT" => Ok(MeansOfDeath::ModTriggerHurt),
+            "MOD_NAIL" => Ok(MeansOfDeath::ModNail),
+            "MOD_CHAINGUN" => Ok(MeansOfDeath::ModChaingun),
+            "MOD_PROXIMITY_MINE" => Ok(MeansOfDeath::ModProximityMine),
+            "MOD_KAMIKAZE" => Ok(MeansOfDeath::ModKamikaze),
+            "MOD_JUICED" => Ok(MeansOfDeath::ModJuiced),
+            "MOD_GRAPPLE" => Ok(MeansOfDeath::ModGrapple),
+            _ => Err(ParseMeansOfDeathError),
         }
     }
 }
@@ -149,8 +147,7 @@ pub fn parse_kill_log(input: &str) -> IResult<&str, KillFeed> {
         tag(" killed "),        // ignore this tag
         take_until(" by "),     // victim is everything until " by "
         tag(" by "),            // ignore this tag
-        take_while1(|c: char| c.is_ascii_uppercase() || c == '_')
-        // take_until("\n"),        // cause is everything until the end of the line
+        take_while1(|c: char| c.is_ascii_uppercase() || c == '_'), // take_until("\n"),        // cause is everything until the end of the line
     ))(input)?;
 
     let Ok(mean_of_death) = mean_of_death.parse::<MeansOfDeath>() else {
@@ -168,4 +165,47 @@ pub fn parse_kill_log(input: &str) -> IResult<&str, KillFeed> {
             mean_of_death,
         },
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_kill_log() {
+        let input = " 25:52 Kill: 1022 2 22: Isgalamido killed Mocinha by MOD_ROCKET";
+        let expected = KillFeed {
+            killer: "Isgalamido",
+            victim: "Mocinha",
+            mean_of_death: MeansOfDeath::ModRocket,
+        };
+        let result = parse_kill_log(input);
+        assert_eq!(result, Ok(("", expected)));
+    }
+
+    #[test]
+    fn test_parse_kill_log_name_with_underscore() {
+        let input = " 25:52 Kill: 1022 2 22: Isgal_amido killed Mocinha by MOD_ROCKET";
+        let expected = KillFeed {
+            killer: "Isgal_amido",
+            victim: "Mocinha",
+            mean_of_death: MeansOfDeath::ModRocket,
+        };
+        let result = parse_kill_log(input);
+        assert_eq!(result, Ok(("", expected)));
+    }
+
+    #[test]
+    fn test_parse_kill_log_invalid_mean_of_death() {
+        let input = " 25:52 Kill: 1022 2 22: Isgalamido killed Mocinha by MOD_INVALID";
+
+        let result = parse_kill_log(input);
+        assert_eq!(
+            result,
+            Err(nom::Err::Error(nom::error::ParseError::from_error_kind(
+                "MOD_INVALID",
+                nom::error::ErrorKind::Tag,
+            )))
+        );
+    }
 }
