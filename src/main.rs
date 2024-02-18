@@ -2,6 +2,7 @@ use std::{collections::HashMap, env};
 use serde::Serialize;
 
 mod parser;
+mod event;
 
 #[derive(Serialize)]
 pub struct MatchKills<'a> {
@@ -20,7 +21,7 @@ fn main() -> Result<(), &'static str> {
         let lines = file.lines();
         for line in lines {
             println!("{}", line);
-            let log = parser::parse_kill_log(line);
+            let log = parser::parse_line(line);
             println!("{:?}", log);
         }
         // let report = generate_report(&file);
